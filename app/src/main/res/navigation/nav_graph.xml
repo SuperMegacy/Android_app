@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/userSelectionFragment">
+
+    <!-- User selection screen -->
+    <fragment
+        android:id="@+id/userSelectionFragment"
+        android:name="com.example.studentapp.data.ui.fragments.UserSelectionFragment"
+        android:label="Select User" >
+        <action
+            android:id="@+id/action_userSelectionFragment_to_loginFragment"
+            app:destination="@id/loginFragment" >
+            <argument
+                android:name="userType"
+                app:argType="string"
+                android:defaultValue="STUDENT" />
+        </action>
+    </fragment>
+
+    <!-- Login fragment -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.studentapp.data.ui.fragments.LoginFragment"
+        android:label="Login" >
+        <action
+            android:id="@+id/action_loginFragment_to_noteListFragment"
+            app:destination="@id/noteListFragment" />
+        <argument
+            android:name="userType"
+            app:argType="string"
+            android:defaultValue="STUDENT" />
+    </fragment>
+
+    <!-- Notes list -->
+    <fragment
+        android:id="@+id/noteListFragment"
+        android:name="com.example.studentapp.ui.fragments.NoteListFragment"
+        android:label="Notes" />
+
+    <!-- Students list -->
+    <fragment
+        android:id="@+id/studentListFragment"
+        android:name="com.example.studentapp.ui.fragments.StudentListFragment"
+        android:label="Students" />
+
+    <!-- Teachers list -->
+    <fragment
+        android:id="@+id/teacherListFragment"
+        android:name="com.example.studentapp.ui.fragments.TeacherListFragment"
+        android:label="Teachers" />
+
+</navigation>
