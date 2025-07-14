@@ -24,4 +24,8 @@ interface StudentDao {
 
     @Query("SELECT * FROM student WHERE email_id = :email")
     suspend fun getStudentByEmail(email: String): Student?
+
+    @Query("SELECT * FROM student")
+    suspend fun getAllStudentsList(): List<Student>
+
 }

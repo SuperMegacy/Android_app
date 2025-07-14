@@ -11,15 +11,16 @@ class TeacherAdapter(
     private val onTeacherClick: ((Teacher) -> Unit)? = null
 ) : RecyclerView.Adapter<TeacherAdapter.TeacherViewHolder>() {
 
-    inner class TeacherViewHolder(private val binding: ItemTeacherBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(teacher: Teacher) {
-            binding.apply {
-                tvTeacherName.text = "${teacher.firstName} ${teacher.lastName}"
-                tvTeacherEmail.text = teacher.email
+    inner class TeacherViewHolder(
+        private val binding: ItemTeacherBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
 
-                root.setOnClickListener {
-                    onTeacherClick?.invoke(teacher)
-                }
+        fun bind(teacher: Teacher) {
+            binding.tvTeacherName.text = "${teacher.firstName} ${teacher.lastName}"
+            binding.tvTeacherEmail.text = teacher.email
+
+            binding.root.setOnClickListener {
+                onTeacherClick?.invoke(teacher)
             }
         }
     }
@@ -33,7 +34,7 @@ class TeacherAdapter(
         holder.bind(teachers[position])
     }
 
-    override fun getItemCount() = teachers.size
+    override fun getItemCount(): Int = teachers.size
 
     fun setTeachers(newTeachers: List<Teacher>) {
         teachers.clear()

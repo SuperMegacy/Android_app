@@ -1,4 +1,4 @@
-package com.example.studentapp.ui.viewmodels
+package com.example.studentapp.data.ui.viewmodels
 
 import androidx.lifecycle.*
 import com.example.studentapp.data.local.dao.NoteDao

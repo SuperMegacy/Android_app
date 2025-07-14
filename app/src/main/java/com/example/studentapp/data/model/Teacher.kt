@@ -8,7 +8,7 @@ import com.google.gson.annotations.SerializedName
 @Entity(tableName = "teacher")
 data class Teacher(
     @PrimaryKey
-    @SerializedName("id") // <-- This matches API key
+    @SerializedName("id")
     val id: Int,
 
     @ColumnInfo(name = "email_id")

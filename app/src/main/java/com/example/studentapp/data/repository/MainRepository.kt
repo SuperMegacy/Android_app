@@ -11,22 +11,19 @@ import com.example.studentapp.data.remote.api.TeacherApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import com.example.studentapp.data.remote.response.TeacherResponse
 
 class MainRepository(
     private val noteDao: NoteDao,
     private val studentDao: StudentDao,
     private val teacherDao: TeacherDao
 ) {
-    private val teacherApi: TeacherApi = RetrofitInstance.retrofit.create(TeacherApi::class.java)
+    private val teacherApi: TeacherApi = RetrofitInstance.teacherApi
 
     // region: Teacher
     suspend fun syncTeachersFromApi() = withContext(Dispatchers.IO) {
         try {
             val response = teacherApi.getTeachers()
             val teachersFromApi = response.data
-
-            // Store them in Room DB
             teacherDao.insertTeachers(teachersFromApi)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -35,12 +32,15 @@ class MainRepository(
 
     suspend fun fetchTeachersFromApi(): List<Teacher> = withContext(Dispatchers.IO) {
         try {
-            val response = teacherApi.getTeachers()
-            response.data
+            teacherApi.getTeachers().data
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
         }
+    }
+
+    suspend fun getAllStudentsList(): List<Student> = withContext(Dispatchers.IO) {
+        studentDao.getAllStudentsList()
     }
 
     fun getAllTeachers(): Flow<List<Teacher>> = teacherDao.getAllTeachers()

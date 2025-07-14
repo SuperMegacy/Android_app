@@ -1,15 +1,13 @@
 package com.example.studentapp.data.ui.viewmodels
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
-import com.example.studentapp.data.local.AppDatabase
-import com.example.studentapp.data.model.Teacher
+import com.example.studentapp.data.repository.MainRepository
 
-class TeacherListViewModel(application: Application) : AndroidViewModel(application) {
+class TeacherListViewModel(
+    private val repository: MainRepository
+) : ViewModel() {
 
-    private val teacherDao = AppDatabase.getInstance(application).teacherDao()
-
-    // Convert Flow to LiveData
-    val teachers = teacherDao.getAllTeachers().asLiveData()
+    // LiveData list of teachers from repository
+    val teachers = repository.getAllTeachers().asLiveData()
 }
