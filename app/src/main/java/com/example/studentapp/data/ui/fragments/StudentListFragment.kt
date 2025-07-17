@@ -1,4 +1,4 @@
-package com.example.studentapp.ui.fragments
+package com.example.studentapp.data.ui.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,9 +8,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.studentapp.data.model.Student
 import com.example.studentapp.databinding.FragmentStudentListBinding
-import com.example.studentapp.ui.adapters.StudentAdapter
+import com.example.studentapp.data.ui.adapters.StudentAdapter
 import com.example.studentapp.data.ui.viewmodels.StudentListViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch

@@ -20,7 +20,6 @@ import com.example.studentapp.databinding.FragmentLoginBinding
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import android.widget.ArrayAdapter
-import com.example.studentapp.data.model.Teacher
 
 
 
@@ -124,34 +123,38 @@ class LoginFragment : Fragment() {
         }
 
         viewModel.loginState.observe(viewLifecycleOwner) { success ->
-            when (success) {
-                true -> {
-                    saveLoginInfo(
-                        "STUDENT",
-                        -1,
-                        binding.etUsername.text.toString().trim()
-                    )
-                    navigateToNoteList()
-                }
-                false -> showLoginFailed()
-                null -> {} // Loading state if needed
+            if (success == true) {
+                val id = viewModel.studentId.value ?: -1
+                val name = viewModel.studentName.value ?: ""
+                saveLoginInfo("STUDENT", id, name)
+                navigateToNoteList()
+            } else if (success == false) {
+                showLoginFailed()
             }
         }
+
     }
 
     private fun handleStudentLogin() {
-        val username = binding.etUsername.text.toString().trim()
-        val password = binding.etPassword.text.toString().trim()
+        val name = binding.etUsername.text.toString().trim()
+        val idText = binding.etPassword.text.toString().trim()
 
-        if (username.isEmpty() || password.isEmpty()) {
-            Toast.makeText(requireContext(), "Please enter username and password", Toast.LENGTH_SHORT).show()
+        if (name.isEmpty() || idText.isEmpty()) {
+            Toast.makeText(requireContext(), "Enter student name and ID", Toast.LENGTH_SHORT).show()
             return
         }
 
-        viewModel.login(username, password)
+        val id = idText.toIntOrNull()
+        if (id == null) {
+            Toast.makeText(requireContext(), "Student ID must be a number", Toast.LENGTH_SHORT)
+                .show()
+            return
+        }
+
+        viewModel.login(id, name)
     }
 
-    private fun showNoTeachersError() {
+        private fun showNoTeachersError() {
         Toast.makeText(requireContext(), "No teachers found. Please try again later.", Toast.LENGTH_LONG).show()
         binding.btnLogin.isEnabled = false
     }
@@ -167,7 +170,7 @@ class LoginFragment : Fragment() {
 
     private fun navigateToNoteList() {
         findNavController().navigate(
-            com.example.studentapp.data.ui.fragments.LoginFragmentDirections
+            LoginFragmentDirections
                 .actionLoginFragmentToNoteListFragment()
         )
     }

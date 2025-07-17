@@ -1,8 +1,6 @@
 package com.example.studentapp.data.model
 
 import androidx.room.*
-import com.example.studentapp.data.model.Teacher
-import com.example.studentapp.data.model.Student
 
 @Entity(
     tableName = "notes",
@@ -24,10 +22,22 @@ import com.example.studentapp.data.model.Student
 )
 data class Note(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
+
     val title: String,
     val description: String,
-    @ColumnInfo(name = "teacher_id") val teacherId: Int,
-    @ColumnInfo(name = "student_id") val studentId: Int,
-    @ColumnInfo(name = "image_urls") val imageUrls: List<String> = emptyList(),
-    @ColumnInfo(name = "created_at") val createdAt: Long = System.currentTimeMillis()
+
+    @ColumnInfo(name = "teacher_id")
+    val teacherId: Int,
+
+    @ColumnInfo(name = "student_id")
+    val studentId: Int,
+
+    @ColumnInfo(name = "image_urls")
+    val imageUrls: List<String> = emptyList(),
+
+    @ColumnInfo(name = "created_at")
+    val createdAt: Long = System.currentTimeMillis(),
+
+    // Add marks (nullable, for teacher grading)
+    val marks: Int? = null
 )

@@ -12,7 +12,7 @@ import com.example.studentapp.data.model.Teacher
 
 @Database(
     entities = [Note::class, Student::class, Teacher::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -32,8 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "student_app_db"
-                ).fallbackToDestructiveMigration()
-                    .build()
+                ).build()
                 INSTANCE = instance
                 instance
             }

@@ -30,7 +30,9 @@ class UserSelectionFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val database = AppDatabase.getInstance(requireActivity().applicationContext)
+        val context = requireActivity().applicationContext
+        val database = AppDatabase.getInstance(context)
+
         repository = MainRepository.getInstance(
             database.noteDao(),
             database.studentDao(),
@@ -49,14 +51,17 @@ class UserSelectionFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Sync API and prefill dummy students
         viewLifecycleOwner.lifecycleScope.launch {
             try {
+                Log.d("UserSelectionFragment", "Syncing teachers from API...")
                 repository.syncTeachersFromApi()
-                addDummyStudents()
-                Log.d("UserSelectionFragment", "Teachers synced and students added.")
+
+                Log.d("UserSelectionFragment", "Inserting dummy students if needed...")
+                insertDummyStudentsIfNotExists()
+
+                Log.d("UserSelectionFragment", "✅ Teacher + Student setup complete.")
             } catch (e: Exception) {
-                Log.e("UserSelectionFragment", "Error syncing data", e)
+                Log.e("UserSelectionFragment", "❌ Error syncing data", e)
             }
         }
 
@@ -79,27 +84,25 @@ class UserSelectionFragment : Fragment() {
                 .actionUserSelectionFragmentToLoginFragment(userType.name)
             findNavController().navigate(action)
         } catch (e: Exception) {
-            Log.e("UserSelectionFragment", "Navigation failed", e)
+            Log.e("UserSelectionFragment", "❌ Navigation failed", e)
         }
     }
 
-    private suspend fun addDummyStudents() {
-        try {
-            val dummyStudents = listOf(
-                Student(0, "Student One", "student1@example.com", "ima"),
-                Student(0, "Student Two", "student2@example.com", "mega"),
-                Student(0, "Student Three", "student3@example.com", "iam ")
-            )
+    private suspend fun insertDummyStudentsIfNotExists() {
+        val dummyStudents = listOf(
+            Student(1001, "emanuel@example.com", "Emanuel", "Pilusa"),
+            Student(1002, "sarah@example.com", "Sarah", "Mokoena"),
+            Student(1003, "lebo@example.com", "Lebo", "Mabena")
+        )
 
-            for (student in dummyStudents) {
-                val exists = repository.getStudentByEmail(student.email)
-                if (exists == null) {
-                    repository.insertStudent(student)
-                    Log.d("UserSelectionFragment", "Inserted dummy student: ${student.firstName}")
-                }
+        for (student in dummyStudents) {
+            val exists = repository.getStudentByEmail(student.email)
+            if (exists == null) {
+                repository.insertStudent(student)
+                Log.d("UserSelectionFragment", "Inserted student: ${student.firstName}")
+            } else {
+                Log.d("UserSelectionFragment", "Student already exists: ${student.firstName}")
             }
-        } catch (e: Exception) {
-            Log.e("UserSelectionFragment", "Error inserting dummy students", e)
         }
     }
 

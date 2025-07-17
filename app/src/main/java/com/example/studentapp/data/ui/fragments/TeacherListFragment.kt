@@ -1,4 +1,4 @@
-package com.example.studentapp.ui.fragments
+package com.example.studentapp.data.ui.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.studentapp.databinding.FragmentTeacherListBinding
-import com.example.studentapp.ui.adapters.TeacherAdapter
+import com.example.studentapp.data.ui.adapters.TeacherAdapter
 import com.example.studentapp.data.ui.viewmodels.TeacherListViewModel
 
 class TeacherListFragment : Fragment() {

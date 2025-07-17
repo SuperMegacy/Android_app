@@ -39,27 +39,43 @@ class MainRepository(
         }
     }
 
+    fun getAllTeachers(): Flow<List<Teacher>> = teacherDao.getAllTeachers()
+
+    suspend fun getTeacherByEmail(email: String): Teacher? = withContext(Dispatchers.IO) {
+        teacherDao.getTeacherByEmail(email)
+    }
+
+    // region: Student
+    suspend fun insertStudent(student: Student) = withContext(Dispatchers.IO) {
+        studentDao.insertStudent(student)
+    }
+
+    suspend fun getStudentByEmail(email: String): Student? = withContext(Dispatchers.IO) {
+        studentDao.getStudentByEmail(email)
+    }
+
+    suspend fun getStudentById(id: Int): Student? = withContext(Dispatchers.IO) {
+        studentDao.getStudentById(id)
+    }
+
+    fun getAllStudents(): Flow<List<Student>> = studentDao.getAllStudents()
+
     suspend fun getAllStudentsList(): List<Student> = withContext(Dispatchers.IO) {
         studentDao.getAllStudentsList()
     }
 
-    fun getAllTeachers(): Flow<List<Teacher>> = teacherDao.getAllTeachers()
-
-    suspend fun getTeacherByEmail(email: String): Teacher? = teacherDao.getTeacherByEmail(email)
-
-    // region: Student
-    suspend fun insertStudent(student: Student) = studentDao.insertStudent(student)
-
-    suspend fun getStudentByEmail(email: String): Student? = studentDao.getStudentByEmail(email)
-
-    fun getAllStudents(): Flow<List<Student>> = studentDao.getAllStudents()
-
     // region: Notes
-    suspend fun insertNote(note: Note) = noteDao.insertNote(note)
+    suspend fun insertNote(note: Note) = withContext(Dispatchers.IO) {
+        noteDao.insertNote(note)
+    }
 
-    suspend fun updateNote(note: Note) = noteDao.updateNote(note)
+    suspend fun updateNote(note: Note) = withContext(Dispatchers.IO) {
+        noteDao.updateNote(note)
+    }
 
-    suspend fun deleteNote(note: Note) = noteDao.deleteNote(note)
+    suspend fun deleteNote(note: Note) = withContext(Dispatchers.IO) {
+        noteDao.deleteNote(note)
+    }
 
     fun getAllNotes(): Flow<List<Note>> = noteDao.getAllNotes()
 
@@ -67,7 +83,9 @@ class MainRepository(
 
     fun getNotesByTeacher(teacherId: Int): Flow<List<Note>> = noteDao.getNotesByTeacher(teacherId)
 
-    suspend fun getNoteById(noteId: Int): Note? = noteDao.getNoteById(noteId)
+    suspend fun getNoteById(noteId: Int): Note? = withContext(Dispatchers.IO) {
+        noteDao.getNoteById(noteId)
+    }
 
     companion object {
         @Volatile
