@@ -12,9 +12,7 @@ interface NoteDao {
 
     @Update
     suspend fun updateNote(note: Note)
-
-    @Delete
-    suspend fun deleteNote(note: Note)
+    
 
     @Query("SELECT * FROM notes ORDER BY created_at DESC")
     fun getAllNotes(): Flow<List<Note>>

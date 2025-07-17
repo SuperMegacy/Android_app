@@ -43,23 +43,26 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- RecyclerView for notes -->
+
+    <!-- Empty state centered in content area -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewNotes"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:paddingStart="16dp"
-        android:paddingEnd="16dp"
         android:paddingTop="8dp"
+        android:paddingEnd="16dp"
         android:paddingBottom="16dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toTopOf="@id/tvEmptyNotes"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintVertical_bias="1.0"
         tools:listitem="@layout/note_item" />
 
-    <!-- Empty state centered in content area -->
     <TextView
         android:id="@+id/tvEmptyNotes"
         android:layout_width="0dp"
@@ -82,6 +85,7 @@
         android:layout_margin="24dp"
         android:contentDescription="Add note"
         android:src="@drawable/ic_add"
+        android:visibility="gone"
         app:backgroundTint="?attr/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

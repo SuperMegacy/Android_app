@@ -1,4 +1,3 @@
-// NoteDetailsViewModel.kt
 package com.example.studentapp.data.ui.viewmodels
 
 import androidx.lifecycle.*
@@ -23,11 +22,22 @@ class NoteDetailsViewModel(private val repository: MainRepository) : ViewModel()
         }
     }
 
-    suspend fun saveNote(note: Note) {
-        if (note.id == 0) {
-            repository.insertNote(note)
-        } else {
-            repository.updateNote(note)
+    suspend fun createNote(note: Note) {
+        repository.insertNote(note)
+    }
+
+    suspend fun updateNote(note: Note) {
+        repository.updateNote(note)
+    }
+
+    fun updateNoteMark(noteId: Int, newMark: Int) {
+        viewModelScope.launch {
+            val noteToUpdate = repository.getNoteById(noteId)
+            noteToUpdate?.let {
+                val updatedNote = it.copy(marks = newMark)
+                repository.updateNote(updatedNote)
+                _note.postValue(updatedNote)
+            }
         }
     }
 }

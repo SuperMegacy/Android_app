@@ -9,13 +9,13 @@ import androidx.room.*
             entity = Teacher::class,
             parentColumns = ["id"],
             childColumns = ["teacher_id"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.NO_ACTION
         ),
         ForeignKey(
             entity = Student::class,
             parentColumns = ["id"],
             childColumns = ["student_id"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.NO_ACTION
         )
     ],
     indices = [Index("teacher_id"), Index("student_id")]
@@ -39,5 +39,5 @@ data class Note(
     val createdAt: Long = System.currentTimeMillis(),
 
     // Add marks (nullable, for teacher grading)
-    val marks: Int? = null
+    var marks: Int? = null
 )

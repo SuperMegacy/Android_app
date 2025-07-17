@@ -2,9 +2,12 @@ package com.example.studentapp
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
+import com.example.studentapp.data.ui.viewmodels.NoteListViewModel
 import com.example.studentapp.databinding.ActivityMainBinding
+
 
 
 class MainActivity : AppCompatActivity() {
@@ -16,6 +19,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupNavigation()
+    }
+
+    fun getNoteListViewModel(): NoteListViewModel {
+        return ViewModelProvider(this)[NoteListViewModel::class.java]
     }
 
     private fun setupNavigation() {

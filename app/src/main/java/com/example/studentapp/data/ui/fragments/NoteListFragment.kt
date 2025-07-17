@@ -4,37 +4,30 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.studentapp.data.local.AppDatabase
+import com.example.studentapp.data.repository.MainRepository
 import com.example.studentapp.data.ui.adapters.NoteAdapter
 import com.example.studentapp.data.ui.viewmodels.NoteListViewModel
+import com.example.studentapp.data.ui.viewmodels.NoteListViewModelFactory
 import com.example.studentapp.databinding.FragmentNoteListBinding
 import kotlinx.coroutines.launch
-import kotlin.getValue
-import androidx.lifecycle.ViewModelProvider
-import com.example.studentapp.data.local.dao.NoteDao
-import com.example.studentapp.data.repository.MainRepository
-import com.example.studentapp.data.ui.viewmodels.NoteListViewModelFactory
-import com.example.studentapp.data.local.AppDatabase
-
 
 class NoteListFragment : Fragment() {
 
     private var _binding: FragmentNoteListBinding? = null
     private val binding get() = _binding!!
 
-    private val noteListViewModel: NoteListViewModel by lazy {
-        val db = AppDatabase.getInstance(requireContext())
-        val repository = MainRepository(db.noteDao(), db.studentDao(), db.teacherDao())
-        val factory = NoteListViewModelFactory(repository)
-        ViewModelProvider(this, factory)[NoteListViewModel::class.java]
-    }
-
+    private lateinit var noteListViewModel: NoteListViewModel
     private lateinit var adapter: NoteAdapter
 
     override fun onCreateView(
@@ -49,6 +42,19 @@ class NoteListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Initialize ViewModel
+        val db = AppDatabase.getInstance(requireContext())
+        val repository = MainRepository(db.noteDao(), db.studentDao(), db.teacherDao())
+        val factory = NoteListViewModelFactory(repository)
+        noteListViewModel = ViewModelProvider(this, factory)[NoteListViewModel::class.java]
+
+        // Get current user type
+        val prefs = requireContext().getSharedPreferences("StudentAppPrefs", 0)
+        val currentUserType = prefs.getString("userType", "") ?: ""
+
+        // Set FAB visibility based on user type
+        binding.fabAddNote.visibility = if (currentUserType == "STUDENT") View.VISIBLE else View.GONE
+
         setupRecyclerView()
         setupClickListeners()
         setupObservers()
@@ -61,6 +67,7 @@ class NoteListFragment : Fragment() {
 
         binding.recyclerViewNotes.apply {
             layoutManager = LinearLayoutManager(requireContext())
+            setHasFixedSize(true)  // Improves performance if item size is fixed
             adapter = this@NoteListFragment.adapter
         }
     }
@@ -78,11 +85,21 @@ class NoteListFragment : Fragment() {
     private fun setupObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                noteListViewModel.notes.observe(viewLifecycleOwner) { notes ->
+                val prefs = requireContext().getSharedPreferences("StudentAppPrefs", 0)
+                val currentUserId = prefs.getInt("userId", -1)
+                val currentUserType = prefs.getString("userType", "") ?: ""
+
+                // Load notes based on user type
+                val notesFlow = when (currentUserType) {
+                    "STUDENT" -> noteListViewModel.loadStudentNotes(currentUserId)
+                    "TEACHER" -> noteListViewModel.loadTeacherNotes(currentUserId)
+                    else -> noteListViewModel.getAllNotes()
+                }
+
+                notesFlow.collect { notes ->
                     adapter.submitList(notes)
                     binding.tvEmptyNotes.visibility = if (notes.isEmpty()) View.VISIBLE else View.GONE
                 }
-
             }
         }
     }
@@ -108,11 +125,12 @@ class NoteListFragment : Fragment() {
         requireContext()
             .getSharedPreferences("StudentAppPrefs", Context.MODE_PRIVATE)
             .edit()
+            .clear()
             .apply()
 
-        val action = NoteListFragmentDirections
-            .actionNoteListFragmentToUserSelectionFragment()
-        findNavController().navigate(action)
+        findNavController().navigate(
+            NoteListFragmentDirections.actionNoteListFragmentToUserSelectionFragment()
+        )
     }
 
     override fun onDestroyView() {
