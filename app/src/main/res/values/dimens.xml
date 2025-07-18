@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Image Preview Dimensions -->
+    <dimen name="image_preview_size">150dp</dimen>
+    <dimen name="image_preview_margin">8dp</dimen>
+    <dimen name="image_delete_button_size">30dp</dimen>
+
+    <!-- Image Preview Card Dimensions -->
+    <dimen name="image_card_corner_radius">8dp</dimen>
+    <dimen name="image_card_elevation">2dp</dimen>
+    <dimen name="image_card_margin_end">12dp</dimen>
+
+    <!-- Image Container Dimensions -->
+    <dimen name="image_container_height">150dp</dimen>
+    <dimen name="image_container_padding">4dp</dimen>
+
+    <!-- Camera Button Dimensions -->
+    <dimen name="camera_button_size">48dp</dimen>
+    <dimen name="camera_button_padding">12dp</dimen>
+</resources>

@@ -53,15 +53,13 @@
         <!-- Note Body Card -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardBody"
-            android:layout_width="332dp"
+            android:layout_width="0dp"
             android:layout_height="262dp"
             android:layout_marginTop="16dp"
             app:cardBackgroundColor="@android:color/white"
             app:cardCornerRadius="12dp"
             app:cardElevation="2dp"
-            app:layout_constraintBottom_toTopOf="@id/layoutImages"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHeight_default="percent"
             app:layout_constraintHeight_percent="0.45"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/cardTitle"
@@ -69,8 +67,8 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="343dp"
-                android:layout_height="272dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:hint="Content"
                 app:boxBackgroundMode="none"
                 app:hintTextColor="?android:attr/textColorSecondary">
@@ -78,7 +76,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etContent"
                     android:layout_width="match_parent"
-                    android:layout_height="240dp"
+                    android:layout_height="match_parent"
                     android:gravity="top|start"
                     android:importantForAccessibility="yes"
                     android:inputType="textMultiLine"
@@ -89,62 +87,54 @@
             </com.google.android.material.textfield.TextInputLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Horizontal image container -->
-        <HorizontalScrollView
-            android:id="@+id/layoutImages"
+        <!-- Image Capture Button Row -->
+        <LinearLayout
+            android:id="@+id/imageCaptureRow"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:scrollbars="none"
-            android:fadeScrollbars="false"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             app:layout_constraintTop_toBottomOf="@id/cardBody"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintWidth_percent="0.95">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/attach_images"
+                android:textSize="16sp"
+                android:layout_marginEnd="8dp"/>
+
+            <ImageButton
+                android:id="@+id/btnAddImage"
+                android:layout_width="@dimen/camera_button_size"
+                android:layout_height="@dimen/camera_button_size"
+                android:src="@drawable/ic_camera"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/add_image"
+                android:padding="@dimen/camera_button_padding"/>
+        </LinearLayout>
+
+        <!-- Image Preview Gallery -->
+        <HorizontalScrollView
+            android:id="@+id/imageGalleryContainer"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/image_container_height"
+            android:layout_marginTop="8dp"
+            android:scrollbars="none"
+            app:layout_constraintTop_toBottomOf="@id/imageCaptureRow"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintWidth_percent="0.95">
+
             <LinearLayout
+                android:id="@+id/imagePreviewContainer"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <androidx.cardview.widget.CardView
-                    android:layout_width="150dp"
-                    android:layout_height="150dp"
-                    android:layout_marginEnd="12dp"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="2dp">
-
-                    <ImageView
-                        android:id="@+id/img1"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerCrop"
-                        android:background="#FAFAFA"
-                        android:src="@drawable/img_1"
-                        android:contentDescription="Add photo"
-                        android:padding="24dp"/>
-                </androidx.cardview.widget.CardView>
-
-                <androidx.cardview.widget.CardView
-                    android:layout_width="150dp"
-                    android:layout_height="150dp"
-                    android:layout_marginEnd="12dp"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="2dp">
-
-                    <ImageView
-                        android:id="@+id/img2"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerCrop"
-                        android:background="#FAFAFA"
-                        android:src="@drawable/img"
-                        android:contentDescription="Add photo"
-                        android:padding="24dp"/>
-                </androidx.cardview.widget.CardView>
-
-            </LinearLayout>
+                android:padding="@dimen/image_container_padding"/>
         </HorizontalScrollView>
 
         <!-- Teacher Spinner -->
@@ -159,7 +149,7 @@
             app:boxCornerRadiusTopEnd="12dp"
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusBottomEnd="12dp"
-            app:layout_constraintTop_toBottomOf="@id/layoutImages"
+            app:layout_constraintTop_toBottomOf="@id/imageGalleryContainer"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintWidth_percent="0.95">
@@ -180,7 +170,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="Enter Marks (0-100)"
+            android:hint="@string/enter_marks"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             app:layout_constraintTop_toBottomOf="@id/teacherContainer"
             app:layout_constraintStart_toStartOf="parent"
@@ -200,7 +190,7 @@
             android:id="@+id/tvMarksDisplay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Marks: 95"
+            android:text="@string/marks_default"
             android:textSize="16sp"
             android:layout_marginTop="12dp"
             android:visibility="gone"
@@ -215,7 +205,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:layout_marginBottom="8dp"
-            android:text="Save Note"
+            android:text="@string/save_note"
             android:textAllCaps="false"
             android:textSize="16sp"
             android:insetTop="0dp"

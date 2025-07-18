@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.symbol.processing)
     alias(libs.plugins.navigation.safeargs)
+    id("kotlin-kapt")
 }
 
 android {
@@ -79,4 +80,6 @@ dependencies {
 
     implementation(libs.gson)
 
+    implementation(libs.glide)
+    kapt(libs.glide.compiler)
 }

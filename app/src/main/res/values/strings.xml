@@ -2,4 +2,25 @@
     <string name="app_name">StudentApp</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="marks_format">Marks: %d</string>
+    <string name="grade_note">Grade Note</string>
+    <string name="title_content_required">Title and content are required</string>
+    <string name="select_teacher">Select a teacher</string>
+    <string name="note_saved">Note saved</string>
+    <string name="error_saving_note">Failed to save note</string>
+    <string name="invalid_marks">Enter valid marks (0–100)</string>
+    <string name="note_graded">Note graded</string>
+    <string name="error_grading_note">Failed to grade note</string>
+    <string name="add_image">Add Image</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="choose_from_gallery">Choose from Gallery</string>
+    <string name="cancel">Cancel</string>
+    <string name="error_creating_file">Error creating image file</string>
+    <string name="error_saving_image">Failed to save image</string>
+    <string name="max_images_reached">Maximum 2 images allowed</string>
+    <string name="permissions_required">Permissions required to add images</string>
+    <string name="attach_images">Attach Images:</string>
+    <string name="enter_marks">Enter Marks (0–100)</string>
+    <string name="marks_default">Marks: 95</string>
+    <string name="save_note">Save Note</string>
 </resources>
