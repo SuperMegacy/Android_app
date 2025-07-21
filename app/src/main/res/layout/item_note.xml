@@ -1,65 +1,66 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<!-- res/layout/item_note_card.xml -->
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/cardView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="8dp"
-    android:focusable="true"
-    android:clickable="true"
-    android:foreground="?attr/selectableItemBackground"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
-    app:cardUseCompatPadding="true">
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    app:strokeColor="@color/card_stroke"
+    app:strokeWidth="0.5dp">
 
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Title (top left) -->
+        <!-- Note Title -->
         <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="match_parent"
+            android:id="@+id/tvNoteTitle"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_toLeftOf="@+id/tvGrade"
-            android:layout_alignParentTop="true"
-            tools:text="Assignment Title"
-            android:textSize="18sp"
+            android:text="Note Title"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@android:color/black"
-            android:ellipsize="end"
-            android:maxLines="1"/>
-
-        <!-- Date (bottom left, below title) -->
-        <TextView
-            android:id="@+id/tvDate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/tvTitle"
-            android:layout_toLeftOf="@id/tvGrade"
-            android:layout_marginTop="4dp"
-            android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="#757575"
-            android:textSize="12sp"
-            tools:text="Nov 15, 2023" />
+            android:ellipsize="end"
+            app:layout_constraintBottom_toTopOf="@id/tvNoteDate"
+            app:layout_constraintEnd_toStartOf="@id/tvNoteMarks"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintHorizontal_weight="3"/>
 
-        <!-- Grade (right side, vertically centered) -->
+        <!-- Note Date -->
         <TextView
-            android:id="@+id/tvGrade"
+            android:id="@+id/tvNoteDate"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Oct 12, 2023"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tvNoteMarks"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvNoteTitle"
+            app:layout_constraintHorizontal_weight="3"/>
+
+        <!-- Note Marks (Right-aligned) -->
+        <TextView
+            android:id="@+id/tvNoteMarks"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
             android:layout_marginStart="16dp"
-            tools:text="Not Graded"
-            android:textColor="#757575"
+            android:text="No marks"
+            android:textColor="@color/colorPrimary"
             android:textSize="14sp"
-            android:paddingLeft="8dp"/>
+            android:textStyle="bold"
+            tools:text="85%"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
 
-    </RelativeLayout>
-</androidx.cardview.widget.CardView>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

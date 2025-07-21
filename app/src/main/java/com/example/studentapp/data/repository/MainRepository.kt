@@ -17,6 +17,7 @@ class MainRepository(
     private val studentDao: StudentDao,
     private val teacherDao: TeacherDao
 ) {
+
     private val teacherApi: TeacherApi = RetrofitInstance.teacherApi
 
     // region: Teacher
@@ -30,20 +31,9 @@ class MainRepository(
         }
     }
 
-    suspend fun fetchTeachersFromApi(): List<Teacher> = withContext(Dispatchers.IO) {
-        try {
-            teacherApi.getTeachers().data
-        } catch (e: Exception) {
-            e.printStackTrace()
-            emptyList()
-        }
-    }
+
 
     fun getAllTeachers(): Flow<List<Teacher>> = teacherDao.getAllTeachers()
-
-    suspend fun getTeacherByEmail(email: String): Teacher? = withContext(Dispatchers.IO) {
-        teacherDao.getTeacherByEmail(email)
-    }
 
     // region: Student
     suspend fun insertStudent(student: Student) = withContext(Dispatchers.IO) {
@@ -54,15 +44,12 @@ class MainRepository(
         studentDao.getStudentByEmail(email)
     }
 
+
+
     suspend fun getStudentById(id: Int): Student? = withContext(Dispatchers.IO) {
         studentDao.getStudentById(id)
     }
 
-    fun getAllStudents(): Flow<List<Student>> = studentDao.getAllStudents()
-
-    suspend fun getAllStudentsList(): List<Student> = withContext(Dispatchers.IO) {
-        studentDao.getAllStudentsList()
-    }
 
     // region: Notes
     suspend fun insertNote(note: Note) = withContext(Dispatchers.IO) {

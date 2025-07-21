@@ -1,74 +1,69 @@
 package com.example.studentapp.data.ui.fragments
 
 import android.Manifest
-import android.app.Activity
-import android.app.AlertDialog
-import android.content.ContentValues
-import android.content.Intent
+import android.content.ActivityNotFoundException
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.bumptech.glide.Glide
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.studentapp.R
-import com.example.studentapp.data.local.AppDatabase
-import com.example.studentapp.data.model.Note
-import com.example.studentapp.data.repository.MainRepository
+import com.example.studentapp.data.ui.adapters.NoteImageAdapter
 import com.example.studentapp.data.ui.viewmodels.NoteDetailsViewModel
-import com.example.studentapp.data.ui.viewmodels.NoteDetailsViewModelFactory
+import com.example.studentapp.data.ui.viewmodels.NoteDetailsViewModel.NoteState
+import com.example.studentapp.data.ui.viewmodels.NoteDetailsViewModel.UIEvent
 import com.example.studentapp.databinding.FragmentNoteDetailsBinding
-import kotlinx.coroutines.Dispatchers
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import androidx.lifecycle.observe
+import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.io.File
-import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
+
+@AndroidEntryPoint
 class NoteDetailsFragment : Fragment() {
 
+    // View binding instance (nullable to avoid memory leaks)
     private var _binding: FragmentNoteDetailsBinding? = null
     private val binding get() = _binding!!
 
+    // Navigation arguments using Safe Args
     private val args: NoteDetailsFragmentArgs by navArgs()
-    private lateinit var viewModel: NoteDetailsViewModel
 
+    // ViewModel instance injected by Hilt
+    private val viewModel: NoteDetailsViewModel by viewModels()
+
+    // Adapter for displaying note images
+    private lateinit var imageAdapter: NoteImageAdapter
+
+    // Currently selected teacher ID (view state, not business logic)
     private var selectedTeacherId: Int? = null
-    private var currentUserId: Int = -1
-    private var currentUserType: String = ""
 
-    private val selectedImageUris = mutableListOf<Uri>()
-    private var tempImageUri: Uri? = null
-
+    // Permission handling based on Android version
     private val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        arrayOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.READ_MEDIA_IMAGES
-        )
+        arrayOf(Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES)
     } else {
         arrayOf(
             Manifest.permission.CAMERA,
@@ -77,61 +72,34 @@ class NoteDetailsFragment : Fragment() {
         )
     }
 
+    // Permission launcher for runtime permission requests
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        if (permissions.all { it.value }) {
+    ) { result ->
+        if (result.all { it.value }) {
             showImagePickerDialog()
         } else {
-            Toast.makeText(
-                requireContext(),
-                "Permissions required to add images",
-                Toast.LENGTH_SHORT
-            ).show()
+            showToast(R.string.permissions_required)
         }
     }
 
-    private fun handleImageSave(uri: Uri) {
-        lifecycleScope.launch {
-            try {
-                val permanentUri = saveImageToPermanentStorage(uri)
-                permanentUri?.let {
-                    selectedImageUris.add(it)
-                    renderImagePreviews()
-                    showToast("Image saved successfully")
-                } ?: showToast("Failed to save image: null URI returned")
-            } catch (e: Exception) {
-                showToast("Error saving image: ${e.localizedMessage}")
-                Log.e("ImageSave", "Error saving image", e)
+    // Camera launcher for capturing images
+    private val cameraLauncher: ActivityResultLauncher<Uri?>
+        get() = registerForActivityResult(
+            ActivityResultContracts.TakePicture()
+        ) { success ->
+            if (success) {
+                viewModel.tempImageUri?.let { viewModel.saveImageToPermanentStorage(it) }
+            } else {
+                showToast(R.string.camera_failed)
             }
         }
-    }
 
-    private val cameraLauncher = registerForActivityResult(
-        ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success) {
-            tempImageUri?.let { uri ->
-                handleImageSave(uri)
-            } ?: showToast("Error: Temporary image URI is null")
-        } else {
-            showToast("Camera operation failed or was cancelled")
-        }
-    }
-
+    // Gallery launcher for selecting images
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri ->
-        if (uri != null) {
-            handleImageSave(uri)
-        } else {
-            showToast("No image selected from gallery")
-        }
-    }
-
-    // Helper function to show toast messages
-    private fun showToast(message: String) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+        uri?.let { viewModel.saveImageToPermanentStorage(it) } ?: showToast(R.string.no_image_selected)
     }
 
     override fun onCreateView(
@@ -146,403 +114,327 @@ class NoteDetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupViewModel()
-        setupUserInfo()
-        setupViews()
-        setupObservers()
+        setupImageRecyclerView()  // Initialize image adapter
+        setupViewListeners()      // Setup click listeners
+        observeViewModel()        // Observe ViewModel state
+        loadInitialData()         // Load note or setup new note
     }
 
-    private fun setupViewModel() {
-        val db = AppDatabase.getInstance(requireContext())
-        val repository = MainRepository.getInstance(db.noteDao(), db.studentDao(), db.teacherDao())
-        viewModel = viewModels<NoteDetailsViewModel> {
-            NoteDetailsViewModelFactory(repository)
-        }.value
-    }
-
-    private fun setupUserInfo() {
-        val prefs = requireContext().getSharedPreferences("StudentAppPrefs", 0)
-        currentUserId = prefs.getInt("userId", -1)
-        currentUserType = prefs.getString("userType", "") ?: ""
-    }
-
-    private fun setupViews() {
-        binding.btnAddImage.setOnClickListener {
-            if (hasPermissions()) {
-                showImagePickerDialog()
-            } else {
-                permissionLauncher.launch(permissions)
+    /**
+     * Initializes the RecyclerView and image adapter
+     * Note: Pure UI setup, no business logic here
+     */
+    private fun setupImageRecyclerView() {
+        imageAdapter = NoteImageAdapter(
+            context = requireContext(),
+            onImageRemoved = { position ->
+                // Delegate image removal to ViewModel
+                viewModel.removeImageAtIndex(position)
             }
+        )
+
+        binding.recyclerViewImages.apply {
+            adapter = imageAdapter
+            layoutManager = LinearLayoutManager(
+                requireContext(),
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
+        }
+    }
+
+    /**
+     * Sets up all view click listeners
+     * Note: Only handles UI interactions, delegates logic to ViewModel
+     */
+    private fun setupViewListeners() {
+        binding.btnAddImage.setOnClickListener {
+            checkPermissionsAndShowPicker()
         }
 
         binding.btnSave.setOnClickListener {
-            if (currentUserType == "STUDENT") {
+            if (viewModel.isStudent()) {
                 saveStudentNote()
             } else {
                 gradeTeacherNote()
             }
         }
+    }
 
-        if (currentUserType == "STUDENT") {
-            setupTeacherSpinner()
-            binding.teacherContainer.isVisible = true
-        } else {
-            binding.teacherContainer.isVisible = false
+    /**
+     * Observes ViewModel state and events
+     * Maintains strict separation between View and ViewModel
+     */
+    private fun observeViewModel() {
+        // Observe note state changes
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.noteState.collectLatest { state ->
+                updateUI(state)
+                // Update images through adapter (UI concern)
+                imageAdapter.submitList(state.imageUris)
+            }
         }
 
+        // Observe one-time UI events
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.teachers.collect { teachers ->
+                    setupTeacherSpinner(teachers)
+                }
+            }
+        }
+
+
+    }
+
+    /**
+     * Loads initial data based on navigation arguments
+     */
+    private fun loadInitialData() {
         if (args.noteId != -1) {
+            // Existing note - load from ViewModel
             viewModel.loadNote(args.noteId)
-        } else if (currentUserType == "STUDENT") {
+        } else if (viewModel.isStudent()) {
+            // New note - enable editing for students
             enableEditing(true)
             binding.btnSave.isVisible = true
-            binding.tvMarksDisplay.isVisible = false
-            binding.layoutMarks.isVisible = false
         }
     }
 
-    private fun setupObservers() {
-        viewModel.note.observe(viewLifecycleOwner) { note ->
-            note?.let {
-                binding.etTitle.setText(it.title)
-                binding.etContent.setText(it.description)
-                selectedTeacherId = it.teacherId
+    /**
+     * Updates UI based on ViewModel state
+     * @param state The current NoteState from ViewModel
+     */
+    private fun updateUI(state: NoteState) = with(binding) {
+        state.note?.let { note ->
+            // Update text fields
+            etTitle.setText(note.title)
+            etContent.setText(note.description)
+            selectedTeacherId = note.teacherId
 
-                selectedImageUris.clear()
-                it.imageUrls.mapNotNull { uriString ->
-                    runCatching { Uri.parse(uriString) }.getOrNull()
-                }.let { uris ->
-                    selectedImageUris.addAll(uris)
-                    renderImagePreviews()
-                }
-
-                if (currentUserType == "STUDENT") {
-                    val editable = it.marks == null
-                    enableEditing(editable)
-                    binding.btnSave.isVisible = editable
-                    binding.layoutMarks.isVisible = false
-                    binding.tvMarksDisplay.isVisible = it.marks != null
-                    if (it.marks != null) {
-                        binding.tvMarksDisplay.text = getString(R.string.marks_format, it.marks)
-                    }
-                } else {
-                    enableEditing(false)
-                    if (it.marks == null) {
-                        binding.layoutMarks.isVisible = true
-                        binding.btnSave.text = getString(R.string.grade_note)
-                        binding.btnSave.isVisible = true
-                    } else {
-                        binding.layoutMarks.isVisible = false
-                        binding.btnSave.isVisible = false
-                        binding.tvMarksDisplay.isVisible = true
-                        binding.tvMarksDisplay.text = getString(R.string.marks_format, it.marks)
-                    }
-                }
+            // Configure UI based on user type and note state
+            if (viewModel.isStudent()) {
+                val editable = note.marks == null
+                enableEditing(editable)
+                btnSave.isVisible = editable
+                layoutMarks.isVisible = false
+                tvMarksDisplay.isVisible = note.marks != null
+                tvMarksDisplay.text = note.marks?.let { getString(R.string.marks_format, it) }
+            } else {
+                enableEditing(false)
+                layoutMarks.isVisible = note.marks == null
+                btnSave.isVisible = note.marks == null
+                tvMarksDisplay.isVisible = note.marks != null
+                tvMarksDisplay.text = note.marks?.let { getString(R.string.marks_format, it) }
+                btnSave.text = getString(R.string.grade_note)
             }
+        }
+    }
+
+    /**
+     * Sets up teacher spinner with data from ViewModel
+     * @param teachers List of teachers from ViewModel
+     */
+    private fun setupTeacherSpinner(teachers: List<com.example.studentapp.data.model.Teacher>?) {
+        if (teachers == null) return
+
+        val teacherNames = teachers.map { "${it.firstName} ${it.lastName}" }
+        val adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            teacherNames
+        ).apply {
+            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
+
+        binding.spinnerTeacher.adapter = adapter
+
+        // Set selected teacher if available
+        val selectedIndex = teachers.indexOfFirst { it.id == selectedTeacherId }
+        if (selectedIndex != -1) binding.spinnerTeacher.setSelection(selectedIndex)
+
+        // Handle selection changes
+        binding.spinnerTeacher.onItemSelectedListener = object :
+            android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>,
+                                        view: View?, position: Int, id: Long) {
+                selectedTeacherId = teachers[position].id
+            }
+
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>) {
+                selectedTeacherId = null
+            }
+        }
+
+        // Only show teacher spinner for students
+        binding.teacherContainer.isVisible = viewModel.isStudent()
+    }
+
+    /* -------------------------
+       Image Handling Methods
+       ------------------------- */
+
+    /* -------------------------
+       Image Handling Methods
+       ------------------------- */
+
+    private fun checkPermissionsAndShowPicker() {
+        when {
+            hasPermissions() -> showImagePickerDialog()
+            shouldShowRequestPermissionRationale() -> showPermissionRationale()
+            else -> permissionLauncher.launch(permissions)
         }
     }
 
     private fun hasPermissions(): Boolean {
-        return permissions.all { permission ->
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                permission
-            ) == PackageManager.PERMISSION_GRANTED
+        return permissions.all {
+            ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
         }
     }
 
-    private fun createTempImageFile(): File? {
-        return try {
-            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val storageDir = requireContext().cacheDir
-            File.createTempFile(
-                "JPEG_${timeStamp}_",
-                ".jpg",
-                storageDir
-            ).apply {
-                createNewFile()
-            }
-        } catch (e: IOException) {
-            null
+    private fun shouldShowRequestPermissionRationale(): Boolean {
+        return permissions.any {
+            ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(), it)
         }
     }
 
-    private fun showImagePickerDialog() {
-        if (selectedImageUris.size >= 2) {
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.max_images_reached),
-                Toast.LENGTH_SHORT
-            ).show()
-            return
-        }
-
-        val options = arrayOf(
-            getString(R.string.take_photo),
-            getString(R.string.choose_from_gallery),
-            getString(R.string.cancel)
-        )
-
-        AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.add_image))
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> launchCamera()
-                    1 -> launchGallery()
-                }
+    private fun showPermissionRationale() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.permission_needed)
+            .setMessage(R.string.image_picker_permission_rationale)
+            .setPositiveButton(R.string.grant) { _, _ ->
+                permissionLauncher.launch(permissions)
             }
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
-    private fun launchCamera() {
-        val photoFile = createTempImageFile() ?: run {
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.error_creating_file),
-                Toast.LENGTH_SHORT
-            ).show()
+    private fun showImagePickerDialog() {
+        if (viewModel.hasReachedImageLimit()) {
+            showMaxImagesReached()
             return
         }
 
-        tempImageUri = FileProvider.getUriForFile(
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.add_image)
+            .setItems(R.array.image_picker_options) { _, which ->
+                handleImagePickerSelection(which)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun handleImagePickerSelection(which: Int) {
+        when (which) {
+            0 -> launchCamera()
+            1 -> launchGallery()
+            else -> Log.w(TAG, "Unknown image picker option selected")
+        }
+    }
+
+    private fun launchCamera() {
+        try {
+            val tempFile = viewModel.createTempImageFile()
+
+            val uri = createFileProviderUri(tempFile)
+            viewModel.setTempImageUri(uri)
+            launchCameraIntent(uri)
+        } catch (e: Exception) {
+            handleCameraError(e)
+        }
+    }
+
+    private fun createFileProviderUri(file: File): Uri {
+        return FileProvider.getUriForFile(
             requireContext(),
             "${requireContext().packageName}.provider",
-            photoFile
+            file
         )
+    }
 
-        cameraLauncher.launch(tempImageUri)
+    private fun launchCameraIntent(uri: Uri) {
+        try {
+            cameraLauncher.launch(uri)
+        } catch (e: ActivityNotFoundException) {
+            showToast(R.string.error_no_camera_app)
+        } catch (e: SecurityException) {
+            showToast(R.string.error_camera_permission)
+        }
     }
 
     private fun launchGallery() {
-        galleryLauncher.launch("image/*")
-    }
-
-    suspend fun saveImageToPermanentStorage(uri: Uri): Uri? {
-        return withContext(Dispatchers.IO) {
-            try {
-                val bitmap = MediaStore.Images.Media.getBitmap(requireContext().contentResolver, uri)
-                val filename = "note_image_${System.currentTimeMillis()}.jpg"
-                val contentValues = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                    put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/StudentApp")
-                        put(MediaStore.MediaColumns.IS_PENDING, 1)
-                    }
-                }
-
-                val permanentUri = requireContext().contentResolver.insert(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    contentValues
-                )
-
-                permanentUri?.let {
-                    requireContext().contentResolver.openOutputStream(it)?.use { outputStream ->
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
-                    }
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        contentValues.clear()
-                        contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                        requireContext().contentResolver.update(it, contentValues, null, null)
-                    }
-
-                    it
-                }
-            } catch (e: Exception) {
-                Log.e("NoteDetailsFragment", "Error saving image", e)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        requireContext(),
-                        getString(R.string.error_saving_image),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-                null
-            }
+        try {
+            galleryLauncher.launch("image/*")
+        } catch (e: ActivityNotFoundException) {
+            showToast(R.string.error_no_gallery_app)
         }
     }
 
-    private fun renderImagePreviews() {
-        binding.imagePreviewContainer.removeAllViews()
-
-        selectedImageUris.forEachIndexed { index, uri ->
-            val imageView = ImageView(requireContext()).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    resources.getDimensionPixelSize(R.dimen.image_preview_size),
-                    resources.getDimensionPixelSize(R.dimen.image_preview_size)
-                ).apply {
-                    marginEnd = resources.getDimensionPixelSize(R.dimen.image_preview_margin)
-                }
-                scaleType = ImageView.ScaleType.CENTER_CROP
-                clipToOutline = true
-                background = ContextCompat.getDrawable(requireContext(), R.drawable.image_preview_bg)
-            }
-
-            val closeButton = ImageView(requireContext()).apply {
-                layoutParams = FrameLayout.LayoutParams(
-                    resources.getDimensionPixelSize(R.dimen.image_delete_button_size),
-                    resources.getDimensionPixelSize(R.dimen.image_delete_button_size)
-                ).apply {
-                    gravity = Gravity.END or Gravity.TOP
-                }
-                setImageResource(R.drawable.ic_close)
-                setOnClickListener {
-                    selectedImageUris.removeAt(index)
-                    renderImagePreviews()
-                }
-            }
-
-            val container = FrameLayout(requireContext()).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                addView(imageView)
-                addView(closeButton)
-            }
-
-            Glide.with(this)
-                .load(uri)
-                .placeholder(R.drawable.ic_image_placeholder)
-                .into(imageView)
-
-            binding.imagePreviewContainer.addView(container)
-        }
+    private fun showMaxImagesReached() {
+        showToast(R.string.max_images_reached)
     }
 
-    private fun enableEditing(enabled: Boolean) {
-        binding.etTitle.isEnabled = enabled
-        binding.etContent.isEnabled = enabled
-        binding.spinnerTeacher.isEnabled = enabled
-        binding.btnAddImage.isVisible = enabled
+    private fun showFileCreationError() {
+        showToast(R.string.error_creating_file)
     }
 
-    private fun setupTeacherSpinner() {
-        viewModel.teachers.observe(viewLifecycleOwner) { teachers ->
-            val teacherNames = teachers.map { "${it.firstName} ${it.lastName}" }
-            val adapter = ArrayAdapter(
-                requireContext(),
-                android.R.layout.simple_spinner_item,
-                teacherNames
-            ).apply {
-                setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            }
-
-            binding.spinnerTeacher.adapter = adapter
-            selectedTeacherId?.let { teacherId ->
-                teachers.indexOfFirst { it.id == teacherId }.takeIf { it >= 0 }?.let { position ->
-                    binding.spinnerTeacher.setSelection(position)
-                }
-            }
-
-            binding.spinnerTeacher.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                    selectedTeacherId = teachers[position].id
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>) {
-                    selectedTeacherId = null
-                }
-            }
-        }
+    private fun handleCameraError(e: Exception) {
+        Log.e(TAG, "Camera launch failed", e)
+        showToast(R.string.error_launching_camera)
     }
 
-    private fun saveStudentNote() {
-        val title = binding.etTitle.text.toString().trim()
-        val content = binding.etContent.text.toString().trim()
+    companion object {
+        private const val TAG = "NoteDetailsFragment"
+    }
+    /* -------------------------
+       Note Saving Methods
+       ------------------------- */
+
+    private fun saveStudentNote() = with(binding) {
+        val title = etTitle.text.toString().trim()
+        val content = etContent.text.toString().trim()
 
         if (title.isEmpty() || content.isEmpty()) {
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.title_content_required),
-                Toast.LENGTH_SHORT
-            ).show()
+            showToast(R.string.title_content_required)
             return
         }
 
         if (selectedTeacherId == null) {
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.select_teacher),
-                Toast.LENGTH_SHORT
-            ).show()
+            showToast(R.string.select_teacher)
             return
         }
 
-        val note = Note(
-            id = if (args.noteId == -1) 0 else args.noteId,
-            title = title,
-            description = content,
-            studentId = currentUserId,
-            teacherId = selectedTeacherId ?: -1,
-            imageUrls = selectedImageUris.map { it.toString() },
-            createdAt = System.currentTimeMillis(),
-            marks = null
-        )
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                if (args.noteId == -1) {
-                    viewModel.createNote(note)
-                } else {
-                    viewModel.updateNote(note)
-                }
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.note_saved),
-                    Toast.LENGTH_SHORT
-                ).show()
-                findNavController().popBackStack()
-            } catch (e: Exception) {
-                Log.e("NoteDetailsFragment", "Error saving note", e)
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.error_saving_note),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
+        viewModel.saveNote(title, content, selectedTeacherId!!)
     }
 
     private fun gradeTeacherNote() {
         val markStr = binding.etMarks.text.toString().trim()
         val mark = markStr.toIntOrNull()
-
         if (mark == null || mark !in 0..100) {
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.invalid_marks),
-                Toast.LENGTH_SHORT
-            ).show()
+            showToast(R.string.invalid_marks)
             return
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                viewModel.updateNoteMark(args.noteId, mark)
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.note_graded),
-                    Toast.LENGTH_SHORT
-                ).show()
-                findNavController().popBackStack()
-            } catch (e: Exception) {
-                Log.e("NoteDetailsFragment", "Error grading note", e)
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.error_grading_note),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
+        viewModel.gradeNote(mark)
+    }
+
+    /* -------------------------
+       Utility Methods
+       ------------------------- */
+
+    private fun enableEditing(enabled: Boolean) = with(binding) {
+        etTitle.isEnabled = enabled
+        etContent.isEnabled = enabled
+        spinnerTeacher.isEnabled = enabled
+        btnAddImage.isVisible = enabled
+    }
+
+    private fun showToast(@StringRes messageResId: Int) {
+        Toast.makeText(requireContext(), getString(messageResId), Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null
-    }
-
-    companion object {
-        private const val PERMISSION_REQUEST_CODE = 100
+        _binding = null  // Prevent memory leaks
     }
 }

@@ -1,6 +1,7 @@
 package com.example.studentapp.data.ui.adapters
 
-import android.util.Log
+import android.annotation.SuppressLint
+import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -13,39 +14,30 @@ class NoteAdapter(
     private val onNoteClick: (Note) -> Unit
 ) : ListAdapter<Note, NoteAdapter.NoteViewHolder>(DiffCallback()) {
 
-    // update single item in the list
+    /**
+     * Updates a single Note item in the list, maintaining immutability for DiffUtil.
+     */
     fun updateNote(updatedNote: Note) {
         val currentList = currentList.toMutableList()
-        val position = currentList.indexOfFirst { it.id == updatedNote.id }
-        if (position != -1) {
-            currentList[position] = updatedNote
+        val index = currentList.indexOfFirst { it.id == updatedNote.id }
+        if (index != -1) {
+            currentList[index] = updatedNote
             submitList(currentList)
         }
     }
 
-    companion object {
-        private const val TAG = "NoteAdapter"
-    }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
-        Log.d(TAG, "Creating new view holder")
-        val binding = ItemNoteBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
+        val binding = ItemNoteBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return NoteViewHolder(binding, onNoteClick)
     }
 
     override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
-        val note = getItem(position)
-        Log.d(TAG, "Binding note at position $position: ${note.id}")
-        holder.bind(note)
+        holder.bind(getItem(position))
     }
 
     override fun submitList(list: List<Note>?) {
-        Log.d(TAG, "Submitting new list with ${list?.size ?: 0} items")
-        super.submitList(list?.let { ArrayList(it) }) // Create new list to ensure diffing works
+        // Defensive copy to ensure DiffUtil triggers updates properly
+        super.submitList(list?.toList())
     }
 
     class NoteViewHolder(
@@ -54,30 +46,29 @@ class NoteAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(note: Note) = with(binding) {
-            tvTitle.text = note.title
-            tvGrade.text = note.marks?.let { "Grade: $it" } ?: "Not graded"
-            tvDate.text = note.createdAt?.let {
-                android.text.format.DateFormat.format("MMM dd, yyyy", it)
+            tvNoteTitle.text = note.title
+            tvNoteMarks.text = note.marks?.let { "Grade: $it" } ?: "Not graded"
+            tvNoteDate.text = note.createdAt?.let {
+                DateFormat.format("MMM dd, yyyy", it).toString()
             } ?: "No date"
 
             root.setOnClickListener {
-                Log.d(TAG, "Note clicked: ${note.id} - ${note.title}")
                 onNoteClick(note)
             }
         }
     }
 
-    class DiffCallback : DiffUtil.ItemCallback<Note>() {
-        override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean {
-            return oldItem.id == newItem.id
-        }
+    private class DiffCallback : DiffUtil.ItemCallback<Note>() {
+        override fun areItemsTheSame(oldItem: Note, newItem: Note): Boolean =
+            oldItem.id == newItem.id
 
-        override fun areContentsTheSame(oldItem: Note, newItem: Note): Boolean {
-            return oldItem.title == newItem.title &&
+        @SuppressLint("DiffUtilEquals")
+        override fun areContentsTheSame(oldItem: Note, newItem: Note): Boolean =
+            oldItem.title == newItem.title &&
                     oldItem.description == newItem.description &&
                     oldItem.marks == newItem.marks &&
                     oldItem.teacherId == newItem.teacherId &&
-                    oldItem.studentId == newItem.studentId
-        }
+                    oldItem.studentId == newItem.studentId &&
+                    oldItem.imageUrls == newItem.imageUrls // added imageUrls check for completeness
     }
 }

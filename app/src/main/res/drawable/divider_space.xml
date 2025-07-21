@@ -1,0 +1,5 @@
+<!-- Res/drawable/divider_space.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Invisible divider that just takes up space -->
+    <size android:width="12dp"/>
+</shape>

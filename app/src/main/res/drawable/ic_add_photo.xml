@@ -1,0 +1,11 @@
+<!-- Res/drawable/ic_add_photo.xml -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Camera icon with plus sign -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M4,4L7,4L7,3L9,3L9,4L15,4L15,3L17,3L17,4L20,4A2,2 0 0,1 22,6L22,20A2,2 0 0,1 20,22L4,22A2,2 0 0,1 2,20L2,6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9M19,10L19,8L17,8L17,10L15,10L15,12L17,12L17,14L19,14L19,12L21,12L21,10L19,10Z"/>
+</vector>

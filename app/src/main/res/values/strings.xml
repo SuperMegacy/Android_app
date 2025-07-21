@@ -23,4 +23,41 @@
     <string name="enter_marks">Enter Marks (0–100)</string>
     <string name="marks_default">Marks: 95</string>
     <string name="save_note">Save Note</string>
+    <string name="error_note_not_loaded">Note could not be loaded</string>
+
+    <string name="no_image_selected">No image selected</string>
+    <string name="camera_failed">Failed to capture image</string>
+
+    <string name="title_hint">Note Title</string>
+    <string name="content_hint">Write your note here…</string>
+    <string name="permission_needed">permission needed</string>
+
+
+        <string name="error_launching_camera">Failed to launch camera</string>
+        <string name="error_no_camera_app">No camera app found</string>
+        <string name="error_no_gallery_app">No gallery app found</string>
+        <string name="error_camera_permission">Camera permission denied</string>
+
+
+        <string name="image_picker_permission_rationale">This app needs storage and camera permissions to access images and take photos.</string>
+        <string name="grant">Grant</string>
+
+
+
+        <string name="remove_image">Remove</string>
+        <string name="image_removed">Image removed</string>
+        <string name="image_added">Image added</string>
+        <string name="image_saved">Image saved</string>
+        <string name="processing_image">Processing image\u2026</string>
+
+        <string name="error_invalid_image">Invalid image selected</string>
+        <string name="error_loading_image">Error loading image</string>
+
+        <string name="error_storage_permission">Storage permission required</string>
+
+
+    <string-array name="image_picker_options">
+        <item>Take Photo</item>
+        <item>Choose from Gallery</item>
+    </string-array>
 </resources>

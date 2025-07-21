@@ -7,9 +7,10 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.example.studentapp.data.ui.viewmodels.NoteListViewModel
 import com.example.studentapp.databinding.ActivityMainBinding
+import dagger.hilt.android.AndroidEntryPoint
 
 
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
