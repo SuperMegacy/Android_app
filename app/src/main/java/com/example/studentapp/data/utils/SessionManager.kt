@@ -4,37 +4,36 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import com.example.studentapp.data.model.UserType
-import javax.inject.Inject
-import javax.inject.Singleton
 
-
-@Singleton
-class SessionManager @Inject constructor() {
+class SessionManager(
+    private val sharedPreferences: SharedPreferences
+) {
     companion object {
         private const val PREF_NAME = "user_session"
         private const val KEY_USER_ID = "user_id"
         private const val KEY_USER_TYPE = "user_type"
+
+        // Factory method to create instance
+        fun create(context: Context): SessionManager {
+            val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            return SessionManager(prefs)
+        }
     }
 
-
-    private fun getPrefs(context: Context): SharedPreferences {
-        return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-    }
-
-    @SuppressLint("UseKtx")
-    fun saveUserInfo(context: Context, userId: Int, userType: UserType) {
-        getPrefs(context).edit()
+    @SuppressLint("ApplySharedPref")
+    fun saveUserInfo(userId: Int, userType: UserType) {
+        sharedPreferences.edit()
             .putInt(KEY_USER_ID, userId)
             .putString(KEY_USER_TYPE, userType.name)
-            .apply()
+            .apply() // Changed to commit() if you need synchronous operation
     }
 
-    fun getCurrentUserId(context: Context): Int {
-        return getPrefs(context).getInt(KEY_USER_ID, -1)
+    fun getCurrentUserId(): Int {
+        return sharedPreferences.getInt(KEY_USER_ID, -1)
     }
 
-    fun getCurrentUserType(context: Context): UserType {
-        val type = getPrefs(context).getString(KEY_USER_TYPE, UserType.STUDENT.name)
+    fun getCurrentUserType(): UserType {
+        val type = sharedPreferences.getString(KEY_USER_TYPE, UserType.STUDENT.name)
         return UserType.valueOf(type ?: UserType.STUDENT.name)
     }
 }

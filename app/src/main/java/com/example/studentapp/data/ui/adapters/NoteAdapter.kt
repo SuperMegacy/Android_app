@@ -33,6 +33,7 @@ class NoteAdapter(
 
     override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
         holder.bind(getItem(position))
+
     }
 
     override fun submitList(list: List<Note>?) {

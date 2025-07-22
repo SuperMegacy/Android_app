@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.symbol.processing)
     alias(libs.plugins.navigation.safeargs)
-    alias(libs.plugins.hilt)
     kotlin("kapt")
 }
 
@@ -25,8 +24,6 @@ android {
         viewBinding = true
     }
 
-
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -40,7 +37,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -49,8 +45,6 @@ android {
 }
 
 dependencies {
-
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
     // Core AndroidX
     implementation(libs.androidx.core.ktx)
@@ -88,30 +82,14 @@ dependencies {
     implementation(libs.glide)
     kapt(libs.glide.compiler)
 
-    // Hilt
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
-
-
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
-
-    // JavaPoet (required by Hilt)
-    implementation(libs.javapoet)
 
     // Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
-
-
-
 }
 
-kapt {
-    correctErrorTypes = true
-}

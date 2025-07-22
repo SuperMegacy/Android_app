@@ -5,8 +5,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
     android:layout_marginBottom="8dp"
-    app:cardCornerRadius="8dp"
+    app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
     app:strokeColor="@color/card_stroke"
     app:strokeWidth="0.5dp">
@@ -16,51 +18,62 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Note Title -->
+        <!-- Top Row: Title and Marks -->
         <TextView
             android:id="@+id/tvNoteTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Note Title"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:textSize="18sp"
             android:textStyle="bold"
             android:maxLines="1"
             android:ellipsize="end"
-            app:layout_constraintBottom_toTopOf="@id/tvNoteDate"
             app:layout_constraintEnd_toStartOf="@id/tvNoteMarks"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintHorizontal_weight="3"/>
+            app:layout_constraintTop_toTopOf="parent"/>
 
-        <!-- Note Date -->
-        <TextView
-            android:id="@+id/tvNoteDate"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Oct 12, 2023"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tvNoteMarks"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvNoteTitle"
-            app:layout_constraintHorizontal_weight="3"/>
-
-        <!-- Note Marks (Right-aligned) -->
         <TextView
             android:id="@+id/tvNoteMarks"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:text="No marks"
-            android:textColor="@color/colorPrimary"
-            android:textSize="14sp"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="16sp"
             android:textStyle="bold"
+            android:background="?attr/selectableItemBackground"
+            android:padding="4dp"
             tools:text="85%"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBaseline_toBaselineOf="@id/tvNoteTitle"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <!-- Middle Row: Teacher Name -->
+        <TextView
+            android:id="@+id/tvTeacherName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Teacher: John Doe"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:maxLines="1"
+            android:ellipsize="end"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvNoteTitle"/>
+
+        <!-- Bottom Row: Date and Status -->
+        <TextView
+            android:id="@+id/tvNoteDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Oct 12, 2023"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvTeacherName"/>
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

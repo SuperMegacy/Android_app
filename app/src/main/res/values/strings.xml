@@ -42,6 +42,7 @@
         <string name="image_picker_permission_rationale">This app needs storage and camera permissions to access images and take photos.</string>
         <string name="grant">Grant</string>
 
+    <string name="add_update_marks">Add/Update Marks</string>
 
 
         <string name="remove_image">Remove</string>
@@ -54,6 +55,12 @@
         <string name="error_loading_image">Error loading image</string>
 
         <string name="error_storage_permission">Storage permission required</string>
+    <string name="error_note_not_found">note not found</string>
+    <string name="error_loading_note">error loading note</string>
+    <string name="add_marks">add marks</string>
+    <string name="update_marks">update marks</string>
+    <string name="error_unauthorized_action">error Unauthorized action</string>
+    <string name="submit_marks">Submit Marks</string>
 
 
     <string-array name="image_picker_options">
