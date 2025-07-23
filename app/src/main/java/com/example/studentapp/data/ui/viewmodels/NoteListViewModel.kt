@@ -69,7 +69,7 @@ class NoteListViewModel(private val repository: MainRepository) : ViewModel() {
         viewModelScope.launch {
             try {
                 _isLoading.emit(true)
-                repository.deleteNote(note)
+                repository.deleteNote(note) // calls real suspend function
             } catch (e: Exception) {
                 _errorMessage.emit("Failed to delete note: ${e.message}")
             } finally {
@@ -77,6 +77,7 @@ class NoteListViewModel(private val repository: MainRepository) : ViewModel() {
             }
         }
     }
+
 
     private fun MainRepository.deleteNote(note: Note) {}
 }

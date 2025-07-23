@@ -60,9 +60,11 @@ class MainRepository(
         noteDao.updateNote(note)
     }
 
-//    suspend fun deleteNote(note: Note) = withContext(Dispatchers.IO) {
-//        noteDao.deleteNote(note)
-//    }
+
+
+    suspend fun deleteNote(note: Note) = withContext(Dispatchers.IO) {
+        noteDao.deleteNote(note)
+     }
 
     fun getAllNotes(): Flow<List<Note>> = noteDao.getAllNotes()
 

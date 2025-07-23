@@ -8,7 +8,6 @@ import com.example.studentapp.data.model.Note
 import com.example.studentapp.data.model.Teacher
 import com.example.studentapp.data.model.UserType
 import com.example.studentapp.data.repository.MainRepository
-import com.example.studentapp.data.utils.SessionManager
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -16,9 +15,10 @@ import java.io.File
 
 class NoteDetailsViewModel(
     private val repository: MainRepository,
-    private val sessionManager: SessionManager,
     application: Application,
-    private val noteId: Int = -1
+    private val noteId: Int = -1,
+    private val userId: Int,
+    private val userType: UserType
 ) : AndroidViewModel(application) {
 
     companion object {
@@ -29,17 +29,19 @@ class NoteDetailsViewModel(
         fun provideFactory(
             application: Application,
             noteId: Int,
-            repository: MainRepository,
-            sessionManager: SessionManager
+            userId: Int,
+            userType: UserType,
+            repository: MainRepository
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
                     return NoteDetailsViewModel(
                         repository,
-                        sessionManager,
                         application,
-                        noteId
+                        noteId,
+                        userId,
+                        userType
                     ) as T
                 }
             }
@@ -56,7 +58,7 @@ class NoteDetailsViewModel(
         val showImageAttachmentOptions: Boolean = true,
         val showTeacherSpinner: Boolean = true,
         val showMarksInput: Boolean = false,
-        val showSaveButton: Boolean = true, // Added to control save button visibility
+        val showSaveButton: Boolean = true,
         val saveButtonTextResId: Int = R.string.save_note,
         val isEditable: Boolean = true
     )
@@ -106,7 +108,6 @@ class NoteDetailsViewModel(
         )
     }
 
-
     fun loadNote(noteId: Int) {
         _noteState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
@@ -142,10 +143,9 @@ class NoteDetailsViewModel(
         _uiState.update {
             it.copy(
                 showMarksInput = isTeacher && note.marks == null,
-                showSaveButton = !isTeacher, // Hide save button for teachers
+                showSaveButton = !isTeacher,
                 isEditable = canEdit,
                 saveButtonTextResId = if (isTeacher) R.string.add_update_marks else R.string.save_note
-
             )
         }
     }
@@ -273,10 +273,7 @@ class NoteDetailsViewModel(
         return File.createTempFile(fileName, ".jpg", storageDir)
     }
 
-    fun isStudent(): Boolean {
-        val userType = sessionManager.getCurrentUserType()
-        return userType == UserType.STUDENT
-    }
+    fun isStudent(): Boolean = userType == UserType.STUDENT
 
-    private fun getCurrentUserId(): Int = sessionManager.getCurrentUserId()
+    private fun getCurrentUserId(): Int = userId
 }

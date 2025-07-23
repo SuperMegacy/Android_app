@@ -26,13 +26,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.studentapp.R
 import com.example.studentapp.data.local.AppDatabase
 import com.example.studentapp.data.model.Teacher
+import com.example.studentapp.data.model.UserType
 import com.example.studentapp.data.repository.MainRepository
 import com.example.studentapp.data.ui.adapters.NoteImageAdapter
 import com.example.studentapp.data.ui.viewmodels.NoteDetailsViewModel
-import com.example.studentapp.data.utils.SessionManager
 import com.example.studentapp.databinding.FragmentNoteDetailsBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.flow.combine
+import java.util.Locale
 
 class NoteDetailsFragment : Fragment() {
 
@@ -89,17 +90,20 @@ class NoteDetailsFragment : Fragment() {
             studentDao = db.studentDao(),
             teacherDao = db.teacherDao()
         )
-        val sessionManager = SessionManager.create(appContext)
+
+        val userType = args.userType
 
         val factory = NoteDetailsViewModel.provideFactory(
             application = requireActivity().application,
             noteId = args.noteId,
-            repository = repository,
-            sessionManager = sessionManager
+            userId = args.userId,
+            userType = userType,
+            repository = repository
         )
 
         viewModel = ViewModelProvider(this, factory)[NoteDetailsViewModel::class.java]
     }
+
 
     override fun onCreateView(
         inflater: LayoutInflater,

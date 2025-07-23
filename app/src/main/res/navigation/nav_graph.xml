@@ -6,7 +6,7 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/userSelectionFragment">
 
-    <!-- User selection screen -->
+    <!-- User Selection Fragment -->
     <fragment
         android:id="@+id/userSelectionFragment"
         android:name="com.example.studentapp.data.ui.fragments.UserSelectionFragment"
@@ -15,15 +15,15 @@
 
         <action
             android:id="@+id/action_userSelectionFragment_to_loginFragment"
-            app:destination="@id/loginFragment">
-            <argument
-                android:name="userType"
-                app:argType="string"
-                android:defaultValue="STUDENT" />
-        </action>
+            app:destination="@id/loginFragment" />
+
+        <argument
+            android:name="userType"
+            app:argType="com.example.studentapp.data.model.UserType"
+            android:defaultValue="STUDENT" />
     </fragment>
 
-    <!-- Login fragment -->
+    <!-- Login Fragment -->
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.example.studentapp.data.ui.fragments.LoginFragment"
@@ -36,11 +36,11 @@
 
         <argument
             android:name="userType"
-            app:argType="string"
+            app:argType="com.example.studentapp.data.model.UserType"
             android:defaultValue="STUDENT" />
     </fragment>
 
-    <!-- Notes list -->
+    <!-- Note List Fragment -->
     <fragment
         android:id="@+id/noteListFragment"
         android:name="com.example.studentapp.data.ui.fragments.NoteListFragment"
@@ -55,15 +55,18 @@
 
         <action
             android:id="@+id/action_noteListFragment_to_noteDetailsFragment"
-            app:destination="@id/noteDetailsFragment">
-            <argument
-                android:name="noteId"
-                app:argType="integer"
-                android:defaultValue="-1" />
-        </action>
+            app:destination="@id/noteDetailsFragment" />
+
+        <argument
+            android:name="userId"
+            app:argType="integer" />
+
+        <argument
+            android:name="userType"
+            app:argType="com.example.studentapp.data.model.UserType" />
     </fragment>
 
-    <!-- Note Details Fragment (create/edit) -->
+    <!-- Note Details Fragment -->
     <fragment
         android:id="@+id/noteDetailsFragment"
         android:name="com.example.studentapp.data.ui.fragments.NoteDetailsFragment"
@@ -75,6 +78,14 @@
             app:argType="integer"
             android:defaultValue="-1" />
 
+        <argument
+            android:name="userId"
+            app:argType="integer" />
+
+        <argument
+            android:name="userType"
+            app:argType="com.example.studentapp.data.model.UserType" />
+
         <action
             android:id="@+id/action_noteDetailsFragment_to_noteListFragment"
             app:destination="@id/noteListFragment"
@@ -82,14 +93,14 @@
             app:popUpToInclusive="false" />
     </fragment>
 
-    <!-- Students list -->
+    <!-- Student List Fragment -->
     <fragment
         android:id="@+id/studentListFragment"
         android:name="com.example.studentapp.data.ui.fragments.StudentListFragment"
         android:label="Students"
         tools:layout="@layout/fragment_student_list" />
 
-    <!-- Teachers list -->
+    <!-- Teacher List Fragment -->
     <fragment
         android:id="@+id/teacherListFragment"
         android:name="com.example.studentapp.data.ui.fragments.TeacherListFragment"

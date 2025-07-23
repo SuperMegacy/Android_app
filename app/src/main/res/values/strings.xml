@@ -61,6 +61,7 @@
     <string name="update_marks">update marks</string>
     <string name="error_unauthorized_action">error Unauthorized action</string>
     <string name="submit_marks">Submit Marks</string>
+    <string name="delete_note">Delete Note</string>
 
 
     <string-array name="image_picker_options">

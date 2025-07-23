@@ -1,50 +1,51 @@
 package com.example.studentapp.data.ui.fragments
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.example.studentapp.data.local.AppDatabase
+import com.example.studentapp.data.model.Teacher
+import com.example.studentapp.data.model.UserType
 import com.example.studentapp.data.repository.MainRepository
+import com.example.studentapp.data.ui.viewmodels.LoginViewModel
 import com.example.studentapp.data.ui.viewmodels.LoginViewModelFactory
 import com.example.studentapp.databinding.FragmentLoginBinding
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import android.widget.ArrayAdapter
-
-
-
 
 class LoginFragment : Fragment() {
 
     private var _binding: FragmentLoginBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel by viewModels<com.example.studentapp.data.ui.viewmodels.LoginViewModel> {
+    private val args: LoginFragmentArgs by navArgs()
+
+    private val viewModel by viewModels<LoginViewModel> {
         LoginViewModelFactory(
             repository = getRepository(),
             teacherDao = getDatabase().teacherDao()
         )
     }
 
-    private var loginType: String? = null
-    private var selectedTeacher: com.example.studentapp.data.model.Teacher? = null
+    private var selectedTeacher: Teacher? = null
+    private lateinit var loginType: UserType
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
-        loginType = arguments?.getString("userType")
+        loginType = args.userType
         return binding.root
     }
 
@@ -55,9 +56,8 @@ class LoginFragment : Fragment() {
 
     private fun setupUI() {
         when (loginType) {
-            "TEACHER" -> setupTeacherLogin()
-            "STUDENT" -> setupStudentLogin()
-            else -> showInvalidLoginType()
+            UserType.TEACHER -> setupTeacherLogin()
+            UserType.STUDENT -> setupStudentLogin()
         }
     }
 
@@ -68,7 +68,7 @@ class LoginFragment : Fragment() {
             etPassword.isVisible = false
 
             lifecycleScope.launch {
-                viewModel.teachers.collectLatest { teachers: List<com.example.studentapp.data.model.Teacher> ->
+                viewModel.teachers.collectLatest { teachers ->
                     if (teachers.isEmpty()) {
                         showNoTeachersError()
                         return@collectLatest
@@ -81,7 +81,7 @@ class LoginFragment : Fragment() {
         }
     }
 
-    private fun setupTeacherSpinner(teachers: List<com.example.studentapp.data.model.Teacher>) {
+    private fun setupTeacherSpinner(teachers: List<Teacher>) {
         val adapter = ArrayAdapter(
             requireContext(),
             android.R.layout.simple_spinner_item,
@@ -106,8 +106,10 @@ class LoginFragment : Fragment() {
 
     private fun handleTeacherLogin() {
         selectedTeacher?.let { teacher ->
-            saveLoginInfo("TEACHER", teacher.id, teacher.firstName)
-            navigateToNoteList()
+            navigateToNoteList(
+                userType = UserType.TEACHER,
+                userId = teacher.id
+            )
         } ?: run {
             Toast.makeText(requireContext(), "Please select a teacher", Toast.LENGTH_SHORT).show()
         }
@@ -125,14 +127,14 @@ class LoginFragment : Fragment() {
         viewModel.loginState.observe(viewLifecycleOwner) { success ->
             if (success == true) {
                 val id = viewModel.studentId.value ?: -1
-                val name = viewModel.studentName.value ?: ""
-                saveLoginInfo("STUDENT", id, name)
-                navigateToNoteList()
+                navigateToNoteList(
+                    userType = UserType.STUDENT,
+                    userId = id
+                )
             } else if (success == false) {
                 showLoginFailed()
             }
         }
-
     }
 
     private fun handleStudentLogin() {
@@ -144,44 +146,28 @@ class LoginFragment : Fragment() {
             return
         }
 
-        val id = idText.toIntOrNull()
-        if (id == null) {
-            Toast.makeText(requireContext(), "Student ID must be a number", Toast.LENGTH_SHORT)
-                .show()
+        val id = idText.toIntOrNull() ?: run {
+            Toast.makeText(requireContext(), "Student ID must be a number", Toast.LENGTH_SHORT).show()
             return
         }
 
         viewModel.login(id, name)
     }
 
-        private fun showNoTeachersError() {
-        Toast.makeText(requireContext(), "No teachers found. Please try again later.", Toast.LENGTH_LONG).show()
-        binding.btnLogin.isEnabled = false
+    private fun navigateToNoteList(userType: UserType, userId: Int) {
+        val action = LoginFragmentDirections.actionLoginFragmentToNoteListFragment(
+            userType = userType,
+            userId = userId
+        )
+        findNavController().navigate(action)
     }
 
-    private fun showInvalidLoginType() {
-        Toast.makeText(requireContext(), "Invalid login type!", Toast.LENGTH_LONG).show()
-        binding.btnLogin.isEnabled = false
+    private fun showNoTeachersError() {
+        Toast.makeText(requireContext(), "No teachers available", Toast.LENGTH_LONG).show()
     }
 
     private fun showLoginFailed() {
-        Toast.makeText(requireContext(), "Login failed. Please try again.", Toast.LENGTH_SHORT).show()
-    }
-
-    private fun navigateToNoteList() {
-        findNavController().navigate(
-            LoginFragmentDirections
-                .actionLoginFragmentToNoteListFragment()
-        )
-    }
-
-    @SuppressLint("UseKtx")
-    private fun saveLoginInfo(userType: String, userId: Int, name: String) {
-        requireContext().getSharedPreferences("StudentAppPrefs", Context.MODE_PRIVATE).edit()
-            .putString("userType", userType)
-            .putInt("userId", userId)
-            .putString("userName", name)
-            .apply()
+        Toast.makeText(requireContext(), "Login failed", Toast.LENGTH_SHORT).show()
     }
 
     private fun getRepository(): MainRepository {

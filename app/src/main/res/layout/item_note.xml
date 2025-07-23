@@ -62,7 +62,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvNoteTitle"/>
 
-        <!-- Bottom Row: Date and Status -->
+        <!-- Bottom Row: Date -->
         <TextView
             android:id="@+id/tvNoteDate"
             android:layout_width="wrap_content"
@@ -74,6 +74,18 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvTeacherName"/>
 
-
+        <!-- Delete Icon (Visible only for students) -->
+        <ImageView
+            android:id="@+id/ivDeleteNote"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="4dp"
+            android:contentDescription="@string/delete_note"
+            android:src="@drawable/ic_delete"
+            android:visibility="gone"
+            app:tint="@color/error_red"
+            app:layout_constraintTop_toBottomOf="@id/tvTeacherName"
+            app:layout_constraintEnd_toEndOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

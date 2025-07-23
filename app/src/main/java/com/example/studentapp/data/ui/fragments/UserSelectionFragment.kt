@@ -11,14 +11,10 @@ import androidx.navigation.fragment.findNavController
 import com.example.studentapp.R
 import com.example.studentapp.data.local.AppDatabase
 import com.example.studentapp.data.model.Student
+import com.example.studentapp.data.model.UserType
 import com.example.studentapp.data.repository.MainRepository
 import com.example.studentapp.databinding.FragmentUserSelectionBinding
 import kotlinx.coroutines.launch
-
-enum class UserType {
-    TEACHER,
-    STUDENT
-}
 
 class UserSelectionFragment : Fragment() {
 
@@ -81,7 +77,7 @@ class UserSelectionFragment : Fragment() {
     private fun navigateToLogin(userType: UserType) {
         try {
             val action = UserSelectionFragmentDirections
-                .actionUserSelectionFragmentToLoginFragment(userType.name)
+                .actionUserSelectionFragmentToLoginFragment(userType)
             findNavController().navigate(action)
         } catch (e: Exception) {
             Log.e("UserSelectionFragment", "❌ Navigation failed", e)
