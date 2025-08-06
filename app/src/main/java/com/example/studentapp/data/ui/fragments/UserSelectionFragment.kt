@@ -23,9 +23,9 @@ class UserSelectionFragment : Fragment() {
 
     private lateinit var repository: MainRepository
 
+    // Initialize the repository
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         val context = requireActivity().applicationContext
         val database = AppDatabase.getInstance(context)
 
@@ -36,6 +36,7 @@ class UserSelectionFragment : Fragment() {
         )
     }
 
+    // Inflate the layout for this fragment
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
